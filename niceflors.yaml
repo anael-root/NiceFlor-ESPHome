@@ -9,18 +9,22 @@ globals:
     restore_value: no
     initial_value: '0x00e48dca'
   # Button IDs
-  - id: button_stop
+  - id: button_1
     type: uint8_t
     restore_value: no
     initial_value: '0x02'
-  - id: button_open
+  - id: button_2
     type: uint8_t
     restore_value: no
     initial_value: '0x01'
-  - id: button_close
+  - id: button_3
     type: uint8_t
     restore_value: no
     initial_value: '0x04'
+  - id: button_4
+    type: uint8_t
+    restore_value: no
+    initial_value: '0x08'
   # Transmitter configuration
   - id: nb_bits
     type: int
@@ -45,7 +49,6 @@ globals:
 
 esphome:
   name: ${hostname}
-  friendly_name: ${device_name}
   comment: "Nice Flor-s"
   project:
     name: "ESPHome.Nice"
@@ -59,7 +62,7 @@ preferences:
   flash_write_interval: 0s
 
 esp8266:
-  board: esp12e
+  board: nodemcuv2
   restore_from_flash: true 
 
 mdns:
@@ -97,7 +100,7 @@ web_server:
     password: !secret web_password
 
 remote_transmitter:
-  pin: GPIO5
+  pin: D6
   id: transmitter
   carrier_duty_percent: 100%
 
@@ -129,13 +132,6 @@ text_sensor:
     mac_address:
       name: "MAC"
 
-output:
-  - id: tx_light_output
-    platform: gpio
-    pin: 
-      number: GPIO16
-      inverted: true
-
 light:
   - platform: status_led
     name: "Status LED"
@@ -144,11 +140,6 @@ light:
     pin:
       number: GPIO2
       inverted: true
-
-  - platform: binary
-    output: tx_light_output
-    id: "tx_light"
-    internal: true
 
 number:
   - platform: template
@@ -184,75 +175,100 @@ button:
   - platform: template
     name: "Pairing"
     on_press:
+      - logger.log:
+          format: "Pairing started..."
+          level: INFO
       - number.to_min: repeat
       - repeat:
-          count: 10
+          count: 60
           then:
-            - light.turn_on: "tx_light"
+            - light.turn_on: status_led_light
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
-                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_close), id(repeat).state);
+                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_1), id(repeat).state);
                   std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
-            - delay: 1ms
-            - light.turn_off: "tx_light"
-            - delay: 1ms
+            - delay: 3ms
+            - light.turn_off: status_led_light
+            - delay: 3ms
             - number.increment: repeat
+      - logger.log:
+          format: "Pairing done"
+          level: INFO
       - number.to_min: repeat
       - number.increment: code
   - platform: template
-    name: "Open"
+    name: "Step-by-Step"
     on_press:
       - number.to_min: repeat
       - repeat:
           count: 7
           then:
-            - light.turn_on: "tx_light"
+            - light.turn_on: status_led_light
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
-                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_open), id(repeat).state);
+                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_1), id(repeat).state);
                   std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
-            - light.turn_off: "tx_light"
+            - light.turn_off: status_led_light
             - delay: 1ms
             - number.increment: repeat
       - number.to_min: repeat
       - number.increment: code
   - platform: template
-    name: "Close"
+    name: "AUX"
     on_press:
       - number.to_min: repeat
       - repeat:
           count: 7
           then:
-            - light.turn_on: "tx_light"
+            - light.turn_on: status_led_light
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
-                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_close), id(repeat).state);
+                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_2), id(repeat).state);
                   std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
-            - light.turn_off: "tx_light"
+            - light.turn_off: status_led_light
             - delay: 1ms
             - number.increment: repeat
       - number.to_min: repeat
       - number.increment: code
   - platform: template
-    name: "Stop"
+    name: "OPEN"
     on_press:
       - number.to_min: repeat
       - repeat:
           count: 7
           then:
-            - light.turn_on: "tx_light"
+            - light.turn_on: status_led_light
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
-                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_stop), id(repeat).state);
+                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_3), id(repeat).state);
                   std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
-            - light.turn_off: "tx_light"
+            - light.turn_off: status_led_light
+            - delay: 1ms
+            - number.increment: repeat
+      - number.to_min: repeat
+      - number.increment: code
+  - platform: template
+    name: "CLOSE"
+    on_press:
+      - number.to_min: repeat
+      - repeat:
+          count: 7
+          then:
+            - light.turn_on: status_led_light
+            - remote_transmitter.transmit_raw:
+                code: !lambda |-
+                  uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_4), id(repeat).state);
+                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  return tx_signal;
+            - delay: 1ms
+            - light.turn_off: status_led_light
             - delay: 1ms
             - number.increment: repeat
       - number.to_min: repeat
