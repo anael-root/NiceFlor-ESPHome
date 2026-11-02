@@ -1,59 +1,59 @@
 # NiceFlor-ESPHome
 
-Émulation d'une télécommande **Nice Flor-s** (433,92 MHz, rolling code) avec un ESP et [ESPHome](https://esphome.io), pour piloter un portail ou une porte de garage Nice depuis Home Assistant.
+Emulates a **Nice Flor-s** remote (433.92 MHz, rolling code) with an ESP and [ESPHome](https://esphome.io), so you can control a Nice gate or garage door from Home Assistant.
 
 > [!NOTE]
-> Ce dépôt est un **fork** de [TimelessNL/NiceFlor-ESPHome](https://github.com/TimelessNL/NiceFlor-ESPHome).
-> Tout le mérite de l'encodage Nice Flor-s et de la configuration d'origine revient à ses auteurs.
-> Ce fork ajoute la compatibilité **ESP32 / ESP-IDF** et met la configuration à jour pour les versions récentes d'ESPHome.
+> This repository is a **fork** of [TimelessNL/NiceFlor-ESPHome](https://github.com/TimelessNL/NiceFlor-ESPHome).
+> All credit for the Nice Flor-s encoding and the original configuration goes to its authors.
+> This fork adds **ESP32 / ESP-IDF** support and updates the configuration for recent ESPHome versions.
 
-## Nouveautés de ce fork
+## What's new in this fork
 
-| | Projet d'origine | Ce fork |
+| | Original project | This fork |
 |---|---|---|
 | ESP8266 (Arduino) | ✅ | ✅ |
 | ESP32 (ESP-IDF) | ❌ | ✅ |
-| ESP32 (Arduino) | non testé | non testé |
-| ESPHome ≥ 2024.6 (nouvelle syntaxe `ota`) | ❌ | ✅ |
+| ESP32 (Arduino) | untested | untested |
+| ESPHome ≥ 2024.6 (new `ota` syntax) | ❌ | ✅ |
 
-Compilation vérifiée avec **ESPHome 2026.10.1** sur `nodemcuv2` (ESP8266, Arduino) et `esp32dev` (ESP32, ESP-IDF).
+Compilation verified with **ESPHome 2026.10.1** on `nodemcuv2` (ESP8266, Arduino) and `esp32dev` (ESP32, ESP-IDF).
 
-### Modifications apportées
+### Changes
 
-- **`niceflors/nice.h`** : le code ne dépend plus d'Arduino.
-  - `pgm_read_word_near` est défini en lecture mémoire directe s'il n'existe pas (cas d'ESP-IDF).
-  - Le type Arduino `byte` est remplacé par `uint8_t`.
-  - Les timings sont renvoyés en `std::vector<int32_t>`, le type attendu par `remote_transmitter.transmit_raw` sur toutes les plateformes (avec la toolchain ESP-IDF, `int32_t` est un `long` et non un `int`).
-- **`niceflors.yaml`** :
-  - Le bloc `ota:` utilise la syntaxe actuelle (`- platform: esphome`).
-  - Les lambdas utilisent `std::vector<int32_t>`.
-  - La configuration cible maintenant un ESP32 (`esp32dev`, framework ESP-IDF).
-  - Le capteur `adc` sur `VCC` (« Power Supply »), propre à l'ESP8266, a été retiré.
+- **`niceflors/nice.h`**: the code no longer depends on Arduino.
+  - `pgm_read_word_near` falls back to a direct memory read when it is not defined (as on ESP-IDF).
+  - The Arduino `byte` type is replaced with `uint8_t`.
+  - Timings are returned as `std::vector<int32_t>`, the type `remote_transmitter.transmit_raw` expects on every platform (with the ESP-IDF toolchain, `int32_t` is a `long`, not an `int`).
+- **`niceflors.yaml`**:
+  - The `ota:` block uses the current syntax (`- platform: esphome`).
+  - Lambdas use `std::vector<int32_t>`.
+  - The configuration now targets an ESP32 (`esp32dev`, ESP-IDF framework).
+  - The ESP8266-only `adc` sensor on `VCC` ("Power Supply") has been removed.
 
-## Matériel
+## Hardware
 
-- Un ESP32 ou un ESP8266.
-- Un émetteur 433,92 MHz (modulation OOK/ASK).
+- An ESP32 or ESP8266.
+- A 433.92 MHz transmitter (OOK/ASK modulation).
 
-| Carte | Broche DATA de l'émetteur |
+| Board | Transmitter DATA pin |
 |---|---|
 | ESP32 (`esp32dev`) | `GPIO23` |
 | ESP8266 (`nodemcuv2`) | `D6` |
 
 ## Installation
 
-1. Copiez `niceflors.yaml` et le dossier `niceflors/` dans votre dossier de configuration ESPHome.
-2. Créez ou complétez `secrets.yaml` :
+1. Copy `niceflors.yaml` and the `niceflors/` folder into your ESPHome configuration folder.
+2. Create or update `secrets.yaml`:
    ```yaml
-   api_key: "<clé de chiffrement API en base64>"
+   api_key: "<base64 API encryption key>"
    ota_password: "..."
    wifi_ssid: "..."
    wifi_password: "..."
    web_password: "..."
    ```
-3. Choisissez votre plateforme dans `niceflors.yaml` :
+3. Choose your platform in `niceflors.yaml`:
 
-   **ESP32 (ESP-IDF)**, configuration par défaut :
+   **ESP32 (ESP-IDF)**, the default configuration:
    ```yaml
    esp32:
      board: esp32dev
@@ -64,7 +64,7 @@ Compilation vérifiée avec **ESPHome 2026.10.1** sur `nodemcuv2` (ESP8266, Ardu
      pin: GPIO23
    ```
 
-   **ESP8266** :
+   **ESP8266**:
    ```yaml
    esp8266:
      board: nodemcuv2
@@ -73,35 +73,35 @@ Compilation vérifiée avec **ESPHome 2026.10.1** sur `nodemcuv2` (ESP8266, Ardu
    remote_transmitter:
      pin: D6
    ```
-   Vous pouvez aussi y ajouter la mesure de la tension d'alimentation, qui n'existe que sur ESP8266 :
+   You can also add the supply voltage measurement, which is only available on ESP8266:
    ```yaml
    sensor:
      - platform: adc
        pin: VCC
        name: "Power Supply"
    ```
-4. Adaptez le numéro de série de la télécommande émulée (`remote_serial`) et, si besoin, les identifiants de boutons (`button_1` à `button_4`) dans la section `globals`.
-5. Compilez et flashez :
+4. Set the serial number of the emulated remote (`remote_serial`) and, if needed, the button IDs (`button_1` to `button_4`) in the `globals` section.
+5. Compile and flash:
    ```bash
    esphome run niceflors.yaml
    ```
 
-## Utilisation
+## Usage
 
-Une fois l'ESP ajouté à Home Assistant, les boutons suivants apparaissent :
+Once the ESP is added to Home Assistant, the following buttons appear:
 
-| Bouton | Action |
+| Button | Action |
 |---|---|
-| **Pairing** | Émet pendant environ 60 trames pour appairer la télécommande virtuelle avec le récepteur |
-| **Step-by-Step** | Commande pas-à-pas (bouton 1) |
-| **AUX** | Bouton 2 |
-| **OPEN** | Bouton 3 |
-| **CLOSE** | Bouton 4 |
+| **Pairing** | Transmits about 60 frames to pair the virtual remote with the receiver |
+| **Step-by-Step** | Step-by-step command (button 1) |
+| **AUX** | Button 2 |
+| **OPEN** | Button 3 |
+| **CLOSE** | Button 4 |
 
-Le rolling code est incrémenté à chaque appui et sauvegardé en flash. Le capteur texte **Code** affiche sa valeur courante.
+The rolling code is incremented on every press and saved to flash. The **Code** text sensor shows its current value.
 
-Pour appairer, mettez le récepteur Nice en mode apprentissage (voir sa notice), puis appuyez sur **Pairing**.
+To pair, put the Nice receiver into learning mode (see its manual), then press **Pairing**.
 
-## Licence
+## License
 
-Apache License 2.0, comme le projet d'origine. Voir [LICENSE](LICENSE).
+Apache License 2.0, same as the original project. See [LICENSE](LICENSE).
