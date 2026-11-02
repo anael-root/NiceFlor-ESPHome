@@ -1,5 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <vector>
+
+#ifndef pgm_read_word_near
+#define pgm_read_word_near(addr) (*(const uint16_t *)(addr))
+#endif
 
 uint64_t nice_flor_s_encode(uint32_t serial, uint32_t code, uint8_t button_id, uint8_t repeat)
 {
@@ -35,37 +40,37 @@ uint64_t nice_flor_s_encode(uint32_t serial, uint32_t code, uint8_t button_id, u
     return encoded;
 }
 
-void nice_flor_s_tx_10(std::vector<int>* tx_buffer)
+void nice_flor_s_tx_10(std::vector<int32_t>* tx_buffer)
 {
     tx_buffer->push_back(id(tx_short));
     tx_buffer->push_back(-id(tx_long));
 }
 
-void nice_flor_s_tx_11(std::vector<int>* tx_buffer)
+void nice_flor_s_tx_11(std::vector<int32_t>* tx_buffer)
 {
     tx_buffer->push_back(id(tx_long));
     tx_buffer->push_back(-id(tx_short));
 }
 
-void nice_flor_s_tx_sync(std::vector<int>* tx_buffer)
+void nice_flor_s_tx_sync(std::vector<int32_t>* tx_buffer)
 {
     tx_buffer->push_back(id(tx_sync));
     tx_buffer->push_back(-id(tx_sync));
 }
 
-void nice_flor_s_tx_gap(std::vector<int>* tx_buffer)
+void nice_flor_s_tx_gap(std::vector<int32_t>* tx_buffer)
 {
     tx_buffer->push_back(-id(tx_gap));
 }
 
-std::vector<int> nice_flor_s_generate_tx(uint64_t data)
+std::vector<int32_t> nice_flor_s_generate_tx(uint64_t data)
 {
-    std::vector<int> tx_buffer;
+    std::vector<int32_t> tx_buffer;
 
     nice_flor_s_tx_sync(&tx_buffer);
 
     for (int i = id(nb_bits) - 1; i >= 0; --i) {
-        byte bit = (data >> i) & 1;
+        uint8_t bit = (data >> i) & 1;
         if(bit){
            nice_flor_s_tx_10(&tx_buffer);
         }else{

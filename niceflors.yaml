@@ -85,7 +85,8 @@ api:
   reboot_timeout: 24h
 
 ota:
-  password: !secret ota_password
+  - platform: esphome
+    password: !secret ota_password
 
 wifi:
   ssid: !secret wifi_ssid
@@ -186,7 +187,7 @@ button:
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
                   uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_1), id(repeat).state);
-                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  std::vector<int32_t> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 3ms
             - light.turn_off: status_led_light
@@ -208,7 +209,7 @@ button:
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
                   uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_1), id(repeat).state);
-                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  std::vector<int32_t> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
             - light.turn_off: status_led_light
@@ -227,7 +228,7 @@ button:
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
                   uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_2), id(repeat).state);
-                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  std::vector<int32_t> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
             - light.turn_off: status_led_light
@@ -246,7 +247,7 @@ button:
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
                   uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_3), id(repeat).state);
-                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  std::vector<int32_t> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
             - light.turn_off: status_led_light
@@ -265,7 +266,7 @@ button:
             - remote_transmitter.transmit_raw:
                 code: !lambda |-
                   uint64_t encoded = nice_flor_s_encode(id(remote_serial), id(code).state, id(button_4), id(repeat).state);
-                  std::vector<int> tx_signal = nice_flor_s_generate_tx(encoded);
+                  std::vector<int32_t> tx_signal = nice_flor_s_generate_tx(encoded);
                   return tx_signal;
             - delay: 1ms
             - light.turn_off: status_led_light
