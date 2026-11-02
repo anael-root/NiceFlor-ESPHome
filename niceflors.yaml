@@ -61,9 +61,10 @@ esphome:
 preferences:
   flash_write_interval: 0s
 
-esp8266:
-  board: nodemcuv2
-  restore_from_flash: true 
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
 
 mdns:
   disabled: true
@@ -101,7 +102,7 @@ web_server:
     password: !secret web_password
 
 remote_transmitter:
-  pin: D6
+  pin: GPIO23
   id: transmitter
   carrier_duty_percent: 100%
 
