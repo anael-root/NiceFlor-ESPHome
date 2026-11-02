@@ -113,9 +113,6 @@ sensor:
   - platform: uptime
     name: "Uptime"
     update_interval: 1min
-  - platform: adc
-    pin: VCC
-    name: "Power Supply"
 
 text_sensor:
   - platform: template
